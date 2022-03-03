@@ -1,11 +1,8 @@
 const formAddTodo = document.querySelector(".form-add-todo");
 const todosContainer = document.querySelector(".todos-container");
-const searchFormTodo = document.querySelector(".form-search");
+const searchTodo = document.querySelector(".form-search");
 
-formAddTodo.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const inputValue = event.target.add.value.trim();
-
+const insertTodo = (inputValue) => {
   if (inputValue.length) {
     todosContainer.innerHTML += `
     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -16,6 +13,13 @@ formAddTodo.addEventListener("submit", (event) => {
   }
 
   event.target.reset();
+};
+
+formAddTodo.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const inputValue = event.target.add.value.trim();
+  insertTodo(inputValue);
 });
 
 todosContainer.addEventListener("click", (event) => {
@@ -29,24 +33,36 @@ todosContainer.addEventListener("click", (event) => {
 
   if (checkedElement) {
     clickedElement.classList.toggle("check");
-    return;
   }
 });
 
-searchFormTodo.addEventListener("input", (event) => {
-  const inputValue = event.target.value.toLowerCase().trim();
+const filterTodos = (todos, inputValue, returnMatchedTodos) =>
+  todos.filter((todo) => {
+    const matchedTodos = todo.textContent.toLowerCase().includes(inputValue);
+    return returnMatchedTodos ? matchedTodos : !matchedTodos;
+  });
 
-  Array.from(todosContainer.children)
-    .filter((todo) => !todo.textContent.toLowerCase().includes(inputValue))
-    .forEach((todo) => {
-      todo.classList.remove("d-flex");
-      todo.classList.add("hidden");
-    });
+const manipulateClasses = (todos, classToAdd, classToRemove) => {
+  todos.forEach((todo) => {
+    todo.classList.remove(classToRemove);
+    todo.classList.add(classToAdd);
+  });
+};
 
-  Array.from(todosContainer.children)
-    .filter((todo) => todo.textContent.toLowerCase().includes(inputValue))
-    .forEach((todo) => {
-      todo.classList.remove("hidden");
-      todo.classList.add("d-flex");
-    });
+const hiddenTodos = (todos, inputValue) => {
+  const todosToHide = filterTodos(todos, inputValue, false);
+  manipulateClasses(todosToHide, "hidden", "d-flex");
+};
+
+const showTodos = (todos, inputValue) => {
+  const todosToShow = filterTodos(todos, inputValue, true);
+  manipulateClasses(todosToShow, "d-flex", "hidden");
+};
+
+searchTodo.addEventListener("input", (event) => {
+  const inputValue = event.target.value.trim().toLowerCase();
+  const todos = Array.from(todosContainer.children);
+
+  hiddenTodos(todos, inputValue);
+  showTodos(todos, inputValue);
 });
